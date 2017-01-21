@@ -20,12 +20,15 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
-function g = PHI_gaussian1(x, y)
+% Find the nodes that are inside the communication range r of node i
+function indices = in_comms_range3( X, Y, Z, i, r )
 
-% Mean
-m = [2 1.5];
+indices = [];
 
-% Deviation
-s = 0.3*eye(2);
-
-g = 5 * mvnpdf([x y], m, s) + 1;
+for j=1:length(X)
+    if j ~= i
+        if norm( [X(i) ; Y(i) ; Z(i)] - [X(j) ; Y(j) ; Z(j)] ) <= r
+            indices = [indices j];
+        end
+    end
+end

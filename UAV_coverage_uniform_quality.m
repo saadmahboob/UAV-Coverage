@@ -156,6 +156,10 @@ f = zeros(1, N);
 C = cell([1 N]);
 % Sensed space partitioning
 W = cell([1 N]);
+% Communication range for each node
+r_comm = zeros(1,N);
+% Cell i stores the indices of nodes inside node i's communication range
+in_range = cell([1 N]);
 % Overlap is used to store which sensing disks overlap with eachother
 overlap = zeros(N, N);
 
@@ -173,13 +177,14 @@ for s=1:smax
 
     % Sensing radii
     R = tan(a) * Z;
-    
     % Coverage quality
     f = fu(Z, zmin, zmax);
     % Sensing disks
     for i=1:N
         C{i} = [X(i) + R(i) * cos(t) ; Y(i) + R(i) * sin(t)];
     end
+    % Communication range %%%%%%%% CHANGE THIS %%%%%%%%
+    r_comm = 2*R;
     
     % Store simulation data
     Xs(s,:) = X;
@@ -188,7 +193,17 @@ for s=1:smax
     Rs(s,:) = R;
     
     % Sensed space partitioning
-    [W, overlap] = sensed_partitioning_uniform(Xb, Yb, C, f);
+    for i=1:N
+        % Find the nodes in communication range of each node i
+		in_range{i} = in_comms_range3( X, Y, Z, i, r_comm(i) );
+		% Put node i first in the list of neighbors
+		in_range{i} = [i in_range{i}];
+
+		% Find the cell of each node i based on its neighbors
+		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
+            C(in_range{i}), f(in_range{i}), 1);
+    end
+%     [W, overlap] = sensed_partitioning_uniform(Xb, Yb, C, f);
     
     % Find covered area and H objective
     for i=1:N

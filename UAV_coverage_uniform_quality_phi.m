@@ -107,9 +107,9 @@ Z = [0.45, 0.55, 0.50];
 % Z = [0.6, 0.6];
 
 % Initial position at zmax
-X = [1.6];
-Y = [1.1];
-Z = [zmax-1.01];
+% X = [1.6];
+% Y = [1.1];
+% Z = [zmax-1.01];
 
 % All cases
 % X = [0.4, 0.7, 1.7, 1.8, 1.2, 1.7, 1.8];
@@ -135,7 +135,7 @@ R = tan(a) * Z;
 
 % ----------------- Simulation parameters -----------------
 % Simulation steps
-smax = 80;
+smax = 150;
 % Simulation time step
 Tstep = 0.1;
 % Points Per Circle
@@ -162,8 +162,13 @@ f = zeros(1, N);
 C = cell([1 N]);
 % Sensed space partitioning
 W = cell([1 N]);
+% Communication range for each node
+r_comm = zeros(1,N);
+% Cell i stores the indices of nodes inside node i's communication range
+in_range = cell([1 N]);
 % Overlap is used to store which sensing disks overlap with eachother
 overlap = zeros(N, N);
+
 
 
 
@@ -179,19 +184,27 @@ for s=1:smax
 
     % Sensing radii
     R = tan(a) * Z;
-    
     % Coverage quality
     f = fu(Z, zmin, zmax);
     % Sensing disks
     for i=1:N
         C{i} = [X(i) + R(i) * cos(t) ; Y(i) + R(i) * sin(t)];
     end
+    % Communication range %%%%%%%% CHANGE THIS %%%%%%%%
+    r_comm = 2*R;
     
     % Store simulation data
     Xs(s,:) = X;
     Ys(s,:) = Y;
     Zs(s,:) = Z;
     Rs(s,:) = R;
+    
+    % Find nodes in communication range
+%     for i=1:N
+%         if norm([X(i) ; Y(i) ; Z(i)] - [X(j) ; Y(j) ; Z(j)])
+%             
+%         end
+%     end
     
     % Sensed space partitioning
     [W, overlap] = sensed_partitioning_uniform(Xb, Yb, C, f);

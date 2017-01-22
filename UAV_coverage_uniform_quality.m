@@ -125,9 +125,6 @@ Z = [0.45, 0.55, 0.50];
 % Number of nodes
 N = length(X);
 
-% Sensing radii
-R = tan(a) * Z;
-
 
 % ----------------- Simulation parameters -----------------
 % Simulation steps
@@ -183,8 +180,8 @@ for s=1:smax
     for i=1:N
         C{i} = [X(i) + R(i) * cos(t) ; Y(i) + R(i) * sin(t)];
     end
-    % Communication range %%%%%%%% CHANGE THIS %%%%%%%%
-    r_comm = 2*R;
+    % Communication range
+    r_comm = communication_range(Z, zmin, zmax, a);
     
     % Store simulation data
     Xs(s,:) = X;
@@ -203,7 +200,6 @@ for s=1:smax
 		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
             C(in_range{i}), f(in_range{i}), 1);
     end
-%     [W, overlap] = sensed_partitioning_uniform(Xb, Yb, C, f);
     
     % Find covered area and H objective
     for i=1:N

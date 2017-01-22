@@ -135,9 +135,9 @@ R = tan(a) * Z;
 
 % ----------------- Simulation parameters -----------------
 % Simulation steps
-smax = 150;
+smax = 1500;
 % Simulation time step
-Tstep = 0.1;
+Tstep = 0.01;
 % Points Per Circle
 PPC = 60;
 % Grid size for double integrals

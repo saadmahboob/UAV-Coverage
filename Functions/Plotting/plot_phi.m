@@ -48,7 +48,8 @@ end
 
 % Create contour plot
 f = f-max(max(f));
-surf(xm, ym, f, 'EdgeColor', 'none');
+% surf(xm, ym, f, 'EdgeColor', 'none');
+contourf(xm, ym, f, 1000, 'LineStyle', 'none');
 
 
 

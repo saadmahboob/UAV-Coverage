@@ -335,7 +335,7 @@ set(h,'Interpreter','latex')
 % Plot objective
 figure;
 plot( Tstep*linspace(1,smax,smax), H, 'b');
-axis([0 Tstep*smax 0 100]);
+axis([0 Tstep*smax 0 ceil(max(H))]);
 h = xlabel('$Time ~(s)$');
 set(h,'Interpreter','latex')
 h = ylabel('$\mathcal{H}$');

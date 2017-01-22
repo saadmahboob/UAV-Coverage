@@ -33,7 +33,7 @@ a = 20*pi/180;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 8;
+Tfinal = 10;
 % Time step in seconds
 Tstep = 0.1;
 
@@ -66,6 +66,7 @@ Yb=[ 0, 0, 1.5, 1.6, 1.7, 2.1, 2.3, 1.2 ];
 [Xb, Yb] = poly2cw(Xb, Yb);
 region = [Xb ; Yb];
 region_area = polyarea( Xb, Yb );
+axis_scale = [-0.5 3 -0.5 3];
 
 % ---------------- Initial State ----------------
 % Initial positions - 3 nodes - 15 seconds
@@ -132,14 +133,12 @@ Z = [0.45, 0.55, 0.50];
 % Y = [0.5, 0.35, 0.6, 0.6, 0.3] + 0.5;
 % Z = [1.3, 0.9, 1.2, 1, 0.95];
 
-% Caclulate optimal altitude
-zopt = z_optimal_uniform(zmin, zmax);
-
-% Number of nodes
-N = length(X);
-
 
 % ---------------- Simulation initializations ----------------
+% Caclulate optimal altitude
+zopt = z_optimal_uniform(zmin, zmax);
+% Number of nodes
+N = length(X);
 % Simulation steps
 smax = floor(Tfinal/Tstep);
 % Points Per Circle
@@ -169,6 +168,23 @@ r_comm = zeros(1,N);
 % Adjacency matrix for communication graph
 A = zeros(N,N);
 
+% Create sim struct that contains all information, used for plots
+sim = struct;
+sim.region = region;
+sim.axis = axis_scale;
+sim.X = X;
+sim.Y = Y;
+sim.Z = Z;
+sim.N = N;
+sim.C = C;
+sim.W = W;
+sim.f = f;
+sim.PLOT_STATE_3D = PLOT_STATE_3D;
+sim.PLOT_STATE_2D = PLOT_STATE_2D;
+sim.PLOT_STATE_QUALITY = PLOT_STATE_QUALITY;
+sim.SAVE_PLOTS = SAVE_PLOTS;
+
+
 
 
 
@@ -181,6 +197,7 @@ tic;
 for s=1:smax
 	fprintf('%.2f%% complete\n',100*s/smax);
 
+    % ----------------- Partitioning -----------------
     % Sensing radii
     R = tan(a) * Z;
     % Coverage quality
@@ -208,6 +225,18 @@ for s=1:smax
             C( logical(A(i,:)) ), f( logical(A(i,:)) ), i);
     end
     
+    
+    % ----------------- Plots -----------------
+    sim.X = X;
+    sim.Y = Y;
+    sim.Z = Z;
+    sim.C = C;
+    sim.W = W;
+    sim.f = f;
+    clf
+    plot_sim_UAV( sim );
+    
+    % ----------------- Objective -----------------
     % Find covered area and H objective
     for i=1:N
         if ~isempty(W{i})
@@ -343,109 +372,6 @@ for s=1:smax
     Y = XYZ(end, N+1:2*N );
     Z = XYZ(end, 2*N+1:3*N );
     
-        
-    
-	if PLOT_STATE_3D || PLOT_STATE_2D || PLOT_STATE_QUALITY
-		% ----------------- Plot network 2D -----------------
-		if PLOT_STATE_2D
-			clf
-			hold on
-			% Region
-			plot_poly( region, 'k');
-			% Sensing disks and cells
-			for i=1:N
-				plot_poly( C{i}, 'r--');
-				plot_poly( W{i}, 'k');
-			end
-			% Node positions
-            for i=1:N
-%                 tmpc = [Xs(s,i) + disk_rad * cos(t) ; Ys(s,i) + disk_rad * sin(t)];
-%                 fill( tmpc(1,:), tmpc(2,:), 'k', 'EdgeColor', 'none' );
-                plot( Xs(s,i), Ys(s,i), 'k.' )
-                hold on
-            end
-            plot_AABB([-0.5 3 -0.5 3], 'w.');
-			
-			set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
-			axis([-0.5 3 -0.5 3])
-			axis equal
-			axis off
-			
-			if SAVE_PLOTS
-				fname = strcat( '~/Frames/', sprintf('2D_frame_%d.png', s) );
-% 				print(fname, '-dpng');
-                saveas(gcf, fname);
-			else
-				pause(0.01);
-			end
-		end
-
-		% ----------------- Plot network 3D -----------------
-		if PLOT_STATE_3D
-			clf
-			hold on
-			% Sensing disks and cells
-			for i=1:N
-				plot3_poly( [C{i} ; zeros(size(C{i}(1,:)))], 'r--');
-				plot3_poly( [W{i} ; zeros(size(W{i}(1,:)))], 'k');
-			end
-			% Node positions and cones
-			for i=1:N
-				plot3( Xs(s,i), Ys(s,i), Zs(s,i), 'ko' )
-				plot3( [Xs(s,i) Xs(s,i)], [Ys(s,i) Ys(s,i)], [Zs(s,i) 0], 'k--' )
-				for j=1:24:PPC
-					plot3([C{i}(1,j) Xs(s,i)], [C{i}(2,j) Ys(s,i)], [0 Zs(s,i)], 'r--');
-				end
-			end
-			% Plot region
-			plot3_poly( [region ; zeros(size(region(1,:)))], 'k' );
-%             plot3(3, 3, zmax, 'w');
-            plot3_AABB([-0.5 3 -0.5 3 0 zmax], 'w.');
-			
-			set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
-			view(-16, 34);
-			axis([-0.5 3 -0.5 3 0 zmax])
-			axis equal
-			axis off
-			
-			if SAVE_PLOTS
-				fname = strcat( '~/Frames/', sprintf('3D_frame_%d.png', s) );
-% 				print(fname, '-dpng');
-                saveas(gcf, fname);
-			else
-				pause(0.01);
-			end
-		end
-		
-		% ----------------- Plot network quality -----------------
-		if PLOT_STATE_QUALITY
-			clf
-			hold on
-			% Plot cylinders
-			for i=1:N
-				plot3_cell_quality(W{i}, f(i), 'r');
-			end
-			% Plot region
-			plot3_poly( [region ; zeros(size(region(1,:)))], 'k' );
-%             plot3(3, 3, zmax, 'w');
-            plot3_AABB([-0.5 3 -0.5 3 0 zmax], 'w.');
-			
-			set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
-			view(-16, 34);
-			axis([-0.5 3 -0.5 3 0 1])
-			axis equal
-			axis off
-			
-			if SAVE_PLOTS
-				fname = strcat( '~/Frames/', sprintf('Q_frame_%d.png', s) );
-% 				print(fname, '-dpng');
-                saveas(gcf, fname);
-			else
-				pause(0.01);
-			end
-		end
-	end
-
 end
 elapsed_time = toc;
 average_iteration = elapsed_time / smax;

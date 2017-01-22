@@ -224,10 +224,13 @@ for s=1:smax
     for i=1:N
         % Find the nodes in communication range of each node i
 		A(i,:) = in_comms_range3( X, Y, Z, i, r_comm(i) );
-
+        
+        % The index of i in the reduced state vector is
+        ind = sum(A(i,1:i));
+        
 		% Find the cell of each node i based on its neighbors
 		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
-            C( logical(A(i,:)) ), f( logical(A(i,:)) ), i);
+            C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
     end
     
     

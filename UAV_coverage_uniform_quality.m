@@ -20,22 +20,46 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADD CHECKS FOR EMPTY CELLS Wi
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 clear variables
 close all
 
+%%%%%%%%%%%%%%%%%%% Set Simulation Options %%%%%%%%%%%%%%%%%%%
+% Network options
+% Altitude constraints
+zmin = 0.3;
+zmax = 2.3;
+% Sensing cone angle (half the angle of the cone)
+a = 20*pi/180;
+
+% Simulation options
+% Simulation duration in seconds
+Tfinal = 8;
+% Time step in seconds
+Tstep = 0.1;
+
+% Control law options
+% Planar control law gain
+axy = 1;
+% Altitude control law gain
+az = 1;
+
+% Network plots to show during simulation
 PLOT_STATE_3D = 0;
 PLOT_STATE_2D = 1;
 PLOT_STATE_QUALITY = 0;
 SAVE_PLOTS = 0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
 
 % Add function path
 addpath( genpath('Functions') );
 
+% ---------------- Region ----------------
 % Bullo region
 Xb=[ 0, 2.125, 2.9325, 2.975, 2.9325, 2.295, 0.85, 0.17 ];
 Yb=[ 0, 0, 1.5, 1.6, 1.7, 2.1, 2.3, 1.2 ];
@@ -43,21 +67,7 @@ Yb=[ 0, 0, 1.5, 1.6, 1.7, 2.1, 2.3, 1.2 ];
 region = [Xb ; Yb];
 region_area = polyarea( Xb, Yb );
 
-% ----------------- Network parameters -----------------
-% Altitude constraints
-zmin = 0.3;
-zmax = 2.3;
-
-% Quality-coverage tradeoff
-Q = 1;
-
-% Sensing cone angle (half the angle of the cone)
-a = 20*pi/180;
-
-% Optimal altitude
-zopt = z_optimal_uniform(zmin, zmax);
-
-
+% ---------------- Initial State ----------------
 % Initial positions - 3 nodes - 15 seconds
 X = [0.40, 0.60, 0.55];
 Y = [0.50, 0.60, 0.50];
@@ -122,20 +132,21 @@ Z = [0.45, 0.55, 0.50];
 % Y = [0.5, 0.35, 0.6, 0.6, 0.3] + 0.5;
 % Z = [1.3, 0.9, 1.2, 1, 0.95];
 
+% Caclulate optimal altitude
+zopt = z_optimal_uniform(zmin, zmax);
+
 % Number of nodes
 N = length(X);
 
 
-% ----------------- Simulation parameters -----------------
+% ---------------- Simulation initializations ----------------
 % Simulation steps
-smax = 80;
-% Simulation time step
-Tstep = 0.1;
+smax = floor(Tfinal/Tstep);
 % Points Per Circle
 PPC = 60;
-% Radius for disks on plots
+% Radius for points on plots
 disk_rad = 0.02;
-% vector for circle parameterization
+% Vector for circle parameterization
 t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
@@ -155,16 +166,14 @@ C = cell([1 N]);
 W = cell([1 N]);
 % Communication range for each node
 r_comm = zeros(1,N);
-% Cell i stores the indices of nodes inside node i's communication range
-in_range = cell([1 N]);
-% Overlap is used to store which sensing disks overlap with eachother
-overlap = zeros(N, N);
+% Adjacency matrix for communication graph
+A = zeros(N,N);
 
 
 
 
 
-% ----------------- Simulation -----------------
+%%%%%%%%%%%%%%%%%%% Simulation %%%%%%%%%%%%%%%%%%%
 if PLOT_STATE_3D || PLOT_STATE_2D || PLOT_STATE_QUALITY
 	figure
 end
@@ -192,13 +201,11 @@ for s=1:smax
     % Sensed space partitioning
     for i=1:N
         % Find the nodes in communication range of each node i
-		in_range{i} = in_comms_range3( X, Y, Z, i, r_comm(i) );
-		% Put node i first in the list of neighbors
-		in_range{i} = [i in_range{i}];
+		A(i,:) = in_comms_range3( X, Y, Z, i, r_comm(i) );
 
 		% Find the cell of each node i based on its neighbors
 		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
-            C(in_range{i}), f(in_range{i}), 1);
+            C( logical(A(i,:)) ), f( logical(A(i,:)) ), i);
     end
     
     % Find covered area and H objective
@@ -265,7 +272,7 @@ for s=1:smax
                         free_arc = 1; % Free arc flag
                         % Loop over all overlapping nodes
                         for j=1:N
-                            if overlap(i,j)
+                            if A(i,j) && i~=j
                                 [inCj1] = inpolygon( pt1(1), pt1(2), C{j}(1,:), C{j}(2,:) );
                                 [inCj2] = inpolygon( pt2(1), pt2(2), C{j}(1,:), C{j}(2,:) );
 
@@ -279,14 +286,11 @@ for s=1:smax
                                     nvector = (n1 + n2) / 2;
 
                                     % X-Y control law
-                                    move_vectors(:,i) = move_vectors(:,i) + (f(i)-f(j)) * d * nvector;
+                                    move_vectors(:,i) = move_vectors(:,i) + ...
+                                        (f(i)-f(j)) * d * nvector;
 
                                     % Z control law
                                     uZ(i) = uZ(i) + (f(i)-f(j))*tan(a)*d;
-
-                                    % DEBUG PLOTS
-    %                                     plot( (pt1(1)+pt2(1))/2, (pt1(2)+pt2(2))/2, 'b.');
-    %                                     hold on
                                 end
 
                                 % If any of the points is inside a Cj, this is
@@ -305,59 +309,39 @@ for s=1:smax
                             nvector = (n1 + n2) / 2;
 
                             % X-Y control law
-                            move_vectors(:,i) = move_vectors(:,i) + f(i) * d * nvector;
+                            move_vectors(:,i) = move_vectors(:,i) + ...
+                                f(i) * d * nvector;
 
                             % Z control law
                             uZ(i) = uZ(i) + f(i)*tan(a)*d;
-
-                            % DEBUG PLOTS
-    %                             plot( (pt1(1)+pt2(1))/2, (pt1(2)+pt2(2))/2, 'g.');
-    %                             hold on
                         end
 
                     end
                 end
             end % line segment for
 
-
             % Area integral for Z control law
-            % Find derivative of fi
-            if Z(i)<=zmin || Z(i)>=zmax
-                dfi=0;
-            else
-                dfi=4*(Z(i)-zmin)*((Z(i)-zmin)^2-(zmax-zmin)^2)/(zmax-zmin)^4;
-            end
-
-            uZ(i) = uZ(i) + Q * dfi * polyarea_nan( W{i}(1,:), W{i}(2,:) );
+            uZ(i) = uZ(i) + dfu(Z(i), zmin, zmax) * ...
+                polyarea_nan( W{i}(1,:), W{i}(2,:) );
         end
     end % node for
     
     % Control inputs
-    uX = move_vectors(1,:);
-    uY = move_vectors(2,:);
+    uX = axy * move_vectors(1,:);
+    uY = axy * move_vectors(2,:);
+    uZ = az * uZ;
     
     
     % ----------------- Simulate with ode -----------------
-    
     Tspan = [s*Tstep (s+1)*Tstep];
     IC = [X Y Z]';
     u = [uX uY uZ]';
     [T, XYZ] = ode45(@(t,y) DYNAMICS_simple(t, y, u), Tspan, IC);
     
-    % Check if the movement kept the nodes inside omega
-	for i=1:N
-		inOmega = inpolygon( XYZ(end, i), XYZ(end, N+i), Xb, Yb);
-		if inOmega
-			% We want the last row of XYZ
-			X = XYZ(end, 1:N );
-			Y = XYZ(end, N+1:2*N );
-			Z = XYZ(end, 2*N+1:3*N );
-		end
-		% Else keep the previous position
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		% Move in omega can be used here
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	end
+    % Keep the last row of XYZ
+    X = XYZ(end, 1:N );
+    Y = XYZ(end, N+1:2*N );
+    Z = XYZ(end, 2*N+1:3*N );
     
         
     
@@ -471,7 +455,7 @@ fprintf('Average iteration time: %.4f s\n', average_iteration)
 
 
 
-% ----------------- Final plots -----------------
+%%%%%%%%%%%%%%%%%%% Final plots %%%%%%%%%%%%%%%%%%%
 % Plot covered area
 figure;
 plot( Tstep*linspace(1,smax,smax), 100*cov_area, 'b');
@@ -503,7 +487,7 @@ traj(1,:,:) = Xs;
 traj(2,:,:) = Ys;
 traj(3,:,:) = Zs;
 
-% ------------------- Save Results -------------------------
+%%%%%%%%%%%%%%%%%%% Save Results %%%%%%%%%%%%%%%%%%%
 filename = ...
 	strcat( 'results_uniform_' , datestr(clock,'yyyymmdd_HHMM') , '.mat' );
 save(filename);

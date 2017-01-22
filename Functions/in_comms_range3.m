@@ -23,12 +23,10 @@
 % Find the nodes that are inside the communication range r of node i
 function indices = in_comms_range3( X, Y, Z, i, r )
 
-indices = [];
+indices = zeros(size(X));
 
 for j=1:length(X)
-    if j ~= i
-        if norm( [X(i) ; Y(i) ; Z(i)] - [X(j) ; Y(j) ; Z(j)] ) <= r
-            indices = [indices j];
-        end
+    if norm( [X(i) ; Y(i) ; Z(i)] - [X(j) ; Y(j) ; Z(j)] ) <= r
+        indices(j) = 1;
     end
 end

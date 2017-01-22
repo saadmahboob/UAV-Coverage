@@ -22,7 +22,7 @@
 
 function plot_sim_UAV(sim)
 
-if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
+if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY || sim.PLOT_STATE_PHI
     
     
     
@@ -116,6 +116,54 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
         end
     end
 
+    
+    
+    % ----------------- Plot network phi -----------------
+    if sim.PLOT_STATE_PHI
+        clf
+        hold on
+        plot_phi( sim.phi , sim.region );
+        % Region
+        plot_poly( sim.region, 'k');
+        % Sensing disks and cells
+        for i=1:sim.N
+            plot_poly( sim.C{i}, 'r--');
+            plot_poly( sim.W{i}, 'k');
+        end
+        % Node positions
+        for i=1:sim.N
+%                 tmpc = [sim.X(i) + disk_rad * cos(t) ; sim.Y(i) + disk_rad * sin(t)];
+%                 fill( tmpc(1,:), tmpc(2,:), 'k', 'EdgeColor', 'none' );
+            plot( sim.X(i), sim.Y(i), 'k.' )
+            hold on
+        end
+        % Connectivity
+        if sim.PLOT_COMMS
+            for i=1:sim.N
+                for j=1:sim.N
+                    if sim.A(i,j)
+                        plot([sim.X(i) sim.X(j)], [sim.Y(i) sim.Y(j)], 'g')
+                    end
+                end
+            end
+        end
+        plot_AABB(sim.axis, 'w.');
+        plot3_AABB([sim.axis 0 sim.zmax], 'w.');
+
+        set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
+        view(0, 90);
+        axis(sim.axis)
+        axis equal
+        axis off
+
+        if sim.SAVE_PLOTS
+            fname = strcat( '~/Frames/', sprintf('2D_frame_%d.png', s) );
+            saveas(gcf, fname);
+        else
+            pause(0.01);
+        end
+    end
+    
     
     
     % ----------------- Plot network quality -----------------

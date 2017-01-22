@@ -20,7 +20,7 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
-function [uX, uY, uZ] = control_uniform(region, phi, zmin, zmax, W, C, f, i, Xi, Yi, Zi, a)
+function [uX, uY, uZ] = control_uniform(region, phi, zmin, zmax, a, W, C, f, i, Xi, Yi, Zi)
 
 N = length(W);
 uXY = zeros(2,1);

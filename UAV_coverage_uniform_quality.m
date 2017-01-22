@@ -262,12 +262,17 @@ for s=1:smax
     
     % ----------------- Control law -----------------
     for i=1:N
+        % The index of i in the reduced state vector is
+        ind = sum(A(i,1:i));
+        
         % Give correct info based on adjacency matrix A
         [uX(i), uY(i), uZ(i)] = ...
-            control_uniform(region, phi, zmin, zmax, W, C, f, i, X(i), Y(i), Z(i), a);
+            control_uniform(region, phi, zmin, zmax, a, ...
+            W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
+            i, X(i), Y(i), Z(i));
     end
     
-    % Control inputs
+    % Control inputs with gain
     uX = axy * uX;
     uY = axy * uY;
     uZ = az * uZ;

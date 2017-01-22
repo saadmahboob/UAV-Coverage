@@ -43,13 +43,9 @@ axy = 1;
 % Altitude control law gain
 az = 1;
 
-% Point importance function
-phi = @PHI_uniform;
-% phi = @PHI_gaussian1;
-
 % Network plots to show during simulation
-PLOT_STATE_3D = 0;
 PLOT_STATE_2D = 1;
+PLOT_STATE_3D = 0;
 PLOT_STATE_QUALITY = 0;
 SAVE_PLOTS = 0;
 
@@ -178,6 +174,9 @@ A = zeros(N,N);
 sim = struct;
 sim.region = region;
 sim.axis = axis_scale;
+sim.PPC = PPC;
+sim.zmin = zmin;
+sim.zmax = zmax;
 sim.X = X;
 sim.Y = Y;
 sim.Z = Z;
@@ -267,7 +266,7 @@ for s=1:smax
         
         % Give correct info based on adjacency matrix A
         [uX(i), uY(i), uZ(i)] = ...
-            control_uniform(region, phi, zmin, zmax, a, ...
+            control_uniform(region, zmin, zmax, a, ...
             W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
             i, X(i), Y(i), Z(i));
     end

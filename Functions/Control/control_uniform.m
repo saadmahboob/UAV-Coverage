@@ -20,7 +20,8 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
-function [uX, uY, uZ] = control_uniform(region, phi, zmin, zmax, a, W, C, f, i, Xi, Yi, Zi)
+function [uX, uY, uZ] = control_uniform(region, zmin, zmax, a, ...
+    W, C, f, i, Xi, Yi, Zi)
 
 N = length(W);
 uXY = zeros(2,1);
@@ -93,7 +94,7 @@ if ~isempty(W{i})
                             uXY = uXY + (f(i)-f(j)) * d * nvector;
 
                             % Z control law
-                            uZ = uZ + (f(i)-f(j))*tan(a)*d;
+                            uZ = uZ + (f(i)-f(j)) * tan(a) * d;
                         end
 
                         % If any of the points is inside a Cj, this is
@@ -115,7 +116,7 @@ if ~isempty(W{i})
                     uXY = uXY + f(i) * d * nvector;
 
                     % Z control law
-                    uZ = uZ + f(i)*tan(a)*d;
+                    uZ = uZ + f(i) * tan(a) * d;
                 end
 
             end
@@ -123,7 +124,7 @@ if ~isempty(W{i})
     end % line segment for
 
     % Area integral for Z control law
-    uZ = uZ + dfu(Zi, zmin, zmax) * polyarea_nan( W{i}(1,:), W{i}(2,:) );
+    uZ = uZ + dfu(Zi, zmin, zmax) * polyarea_nan(W{i}(1,:), W{i}(2,:));
 end
 
 uX = uXY(1);

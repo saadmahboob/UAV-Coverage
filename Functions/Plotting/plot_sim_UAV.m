@@ -83,19 +83,28 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
         % Node positions and cones
         for i=1:sim.N
             plot3( sim.X(i), sim.Y(i), sim.Z(i), 'ko' )
-            plot3( [sim.X(i) sim.X(i)], [sim.Y(i) sim.Y(i)], [sim.Z(i) 0], 'k--' )
-            for j=1:24:PPC
+            plot3( [sim.X(i) sim.X(i)], [sim.Y(i) sim.Y(i)], [sim.Z(i) 0], 'k--.' )
+            for j=1:24:sim.PPC
                 plot3([sim.C{i}(1,j) sim.X(i)], [sim.C{i}(2,j) sim.Y(i)], [0 sim.Z(i)], 'r--');
+            end
+        end
+        % Connectivity
+        if sim.PLOT_COMMS
+            for i=1:sim.N
+                for j=1:sim.N
+                    if sim.A(i,j)
+                        plot3([sim.X(i) sim.X(j)], [sim.Y(i) sim.Y(j)], [sim.Z(i) sim.Z(j)], 'g')
+                    end
+                end
             end
         end
         % Plot region
         plot3_poly( [sim.region ; zeros(size(sim.region(1,:)))], 'k' );
-%             plot3(3, 3, zmax, 'w');
-        plot3_AABB([sim.axis 0 zmax], 'w.');
+        plot3_AABB([sim.axis 0 sim.zmax], 'w.');
 
         set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
         view(-16, 34);
-        axis([sim.axis 0 zmax])
+        axis([sim.axis 0 sim.zmax])
         axis equal
         axis off
 
@@ -119,7 +128,7 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
         end
         % Plot region
         plot3_poly( [sim.region ; zeros(size(sim.region(1,:)))], 'k' );
-        plot3_AABB([sim.axis 0 zmax], 'w.');
+        plot3_AABB([sim.axis 0 sim.zmax], 'w.');
 
         set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
         view(-16, 34);

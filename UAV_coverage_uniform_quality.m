@@ -48,6 +48,9 @@ PLOT_STATE_3D = 0;
 PLOT_STATE_2D = 1;
 PLOT_STATE_QUALITY = 0;
 SAVE_PLOTS = 0;
+
+% Save simulation results to file
+SAVE_RESULTS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -70,14 +73,14 @@ axis_scale = [-0.5 3 -0.5 3];
 
 % ---------------- Initial State ----------------
 % Initial positions - 3 nodes - 15 seconds
-X = [0.40, 0.60, 0.55];
-Y = [0.50, 0.60, 0.50];
-Z = [0.45, 0.55, 0.50];
+% X = [0.40, 0.60, 0.55];
+% Y = [0.50, 0.60, 0.50];
+% Z = [0.45, 0.55, 0.50];
 
 % Initial positions - 9 nodes - 20 seconds
-% X = [0.40, 0.60, 0.55, 0.60, 0.50, 0.70, 0.60, 0.90, 0.80];
-% Y = [0.50, 0.60, 0.50, 0.40, 0.60, 0.50, 0.75, 0.85, 0.95];
-% Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
+X = [0.40, 0.60, 0.55, 0.60, 0.50, 0.70, 0.60, 0.90, 0.80];
+Y = [0.50, 0.60, 0.50, 0.40, 0.60, 0.50, 0.75, 0.85, 0.95];
+Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
 
 % Initial positions - 7 nodes (deleted two from 9 nodes) - 8 seconds
 % X = [1.6910359269619974 1.0671555014553136 ...
@@ -179,6 +182,8 @@ sim.N = N;
 sim.C = C;
 sim.W = W;
 sim.f = f;
+sim.A = A;
+sim.PLOT_COMMS = 1;
 sim.PLOT_STATE_3D = PLOT_STATE_3D;
 sim.PLOT_STATE_2D = PLOT_STATE_2D;
 sim.PLOT_STATE_QUALITY = PLOT_STATE_QUALITY;
@@ -233,8 +238,10 @@ for s=1:smax
     sim.C = C;
     sim.W = W;
     sim.f = f;
+    sim.A = A;
     clf
     plot_sim_UAV( sim );
+    
     
     % ----------------- Objective -----------------
     % Find covered area and H objective
@@ -245,7 +252,6 @@ for s=1:smax
         end
     end
     cov_area(s) = cov_area(s)/region_area;
-    
     
     
     % ----------------- Control law -----------------
@@ -414,6 +420,8 @@ traj(2,:,:) = Ys;
 traj(3,:,:) = Zs;
 
 %%%%%%%%%%%%%%%%%%% Save Results %%%%%%%%%%%%%%%%%%%
-filename = ...
-	strcat( 'results_uniform_' , datestr(clock,'yyyymmdd_HHMM') , '.mat' );
-save(filename);
+if SAVE_RESULTS
+    filename = ...
+        strcat( 'results_uniform_' , datestr(clock,'yyyymmdd_HHMM') , '.mat' );
+    save(filename);
+end

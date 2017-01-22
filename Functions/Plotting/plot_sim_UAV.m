@@ -23,6 +23,9 @@
 function plot_sim_UAV(sim)
 
 if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
+    
+    
+    
     % ----------------- Plot network 2D -----------------
     if sim.PLOT_STATE_2D
         clf
@@ -41,6 +44,16 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
             plot( sim.X(i), sim.Y(i), 'k.' )
             hold on
         end
+        % Connectivity
+        if sim.PLOT_COMMS
+            for i=1:sim.N
+                for j=1:sim.N
+                    if sim.A(i,j)
+                        plot([sim.X(i) sim.X(j)], [sim.Y(i) sim.Y(j)], 'g')
+                    end
+                end
+            end
+        end
         plot_AABB(sim.axis, 'w.');
 
         set( gca, 'Units', 'normalized', 'Position', [0 0 1 1] );
@@ -56,6 +69,8 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
         end
     end
 
+    
+    
     % ----------------- Plot network 3D -----------------
     if sim.PLOT_STATE_3D
         clf
@@ -92,6 +107,8 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY
         end
     end
 
+    
+    
     % ----------------- Plot network quality -----------------
     if sim.PLOT_STATE_QUALITY
         clf

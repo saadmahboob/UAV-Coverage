@@ -263,7 +263,24 @@ for s=1:smax
     for i=1:N
         if ~isempty(W{i})
             cov_area(s) = cov_area(s) + polyarea_nan(W{i}(1,:), W{i}(2,:));
-            H(s) = H(s) + f_u(i) * polyarea_nan(W{i}(1,:), W{i}(2,:));
+            
+            % Create grid
+            minxWi = min( W{i}(1,:) );
+            maxxWi = max( W{i}(1,:) );
+            minyWi = min( W{i}(2,:) );
+            maxyWi = max( W{i}(2,:) );
+            mingrid = min( [minxWi minyWi] );
+            maxgrid = max( [maxxWi maxyWi] );
+            lx = linspace(mingrid, maxgrid, gridsize);
+            ly = linspace(mingrid, maxgrid, gridsize);
+            [gx, gy] = meshgrid( lx, ly );
+            dx = lx(2)-lx(1);
+
+            for k=1:gridsize^2
+                if inpolygon( gx(k), gy(k), W{i}(1,:), W{i}(2,:) )
+                     H(s) = H(s) + dx^2 * fp(gx(k), gy(k), X(i), Y(i), Z(i), zmin, zmax, a, b);
+                end
+            end
         end
     end
     
@@ -321,7 +338,26 @@ h = ylabel('$A_{cov}~(\%)$');
 set(h,'Interpreter','latex')
 
 % Plot objective
-H_opt = N * pi * (zopt * tan(a))^2 * fu(zopt, zmin, zmax);
+% Create grid
+minxWi = min( C{i}(1,:) );
+maxxWi = max( C{i}(1,:) );
+minyWi = min( C{i}(2,:) );
+maxyWi = max( C{i}(2,:) );
+mingrid = min( [minxWi minyWi] );
+maxgrid = max( [maxxWi maxyWi] );
+lx = linspace(mingrid, maxgrid, gridsize);
+ly = linspace(mingrid, maxgrid, gridsize);
+[gx, gy] = meshgrid( lx, ly );
+dx = lx(2)-lx(1);
+
+% Start integration
+H_opt = 0;
+for k=1:gridsize^2
+    if inpolygon( gx(k), gy(k), C{i}(1,:), C{i}(2,:) )
+        H_opt = H_opt + dx^2 * fp(gx(k), gy(k), X(i), Y(i), Z(i), zmin, zmax, a, b);
+    end
+end
+H_opt = N*H_opt;
 figure;
 plot( Tstep*linspace(1,smax,smax), 100*H / H_opt, 'b');
 hold on

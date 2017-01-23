@@ -188,6 +188,7 @@ sim.A = A;
 sim.PLOT_COMMS = 0;
 sim.PLOT_STATE_3D = PLOT_STATE_3D;
 sim.PLOT_STATE_2D = PLOT_STATE_2D;
+sim.PLOT_STATE_PHI = 0;
 sim.PLOT_STATE_QUALITY = PLOT_STATE_QUALITY;
 sim.SAVE_PLOTS = SAVE_PLOTS;
 
@@ -231,7 +232,7 @@ for s=1:smax
         ind = sum(A(i,1:i));
         
 		% Find the cell of each node i based on its neighbors
-		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
+		W{i} = sensed_partitioning_uniform_cell(region, ...
             C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
     end
     

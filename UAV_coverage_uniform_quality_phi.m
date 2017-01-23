@@ -240,7 +240,7 @@ for s=1:smax
         ind = sum(A(i,1:i));
         
 		% Find the cell of each node i based on its neighbors
-		W{i} = sensed_partitioning_uniform_cell(Xb, Yb, ...
+		W{i} = sensed_partitioning_uniform_cell(region, ...
             C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
     end
     

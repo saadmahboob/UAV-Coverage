@@ -20,6 +20,10 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
+%%%%%%%%%%%%%%%%%%%%
+% fix H and Hopt calculation
+%%%%%%%%%%%%%%%%%%%%
+
 clear variables
 close all
 
@@ -142,6 +146,8 @@ zopt = z_optimal_decreasing(zmin, zmax);
 N = length(X);
 % Simulation steps
 smax = floor(Tfinal/Tstep);
+% Grid size for double integrals
+gridsize = 50;
 % Points Per Circle
 PPC = 60;
 % Radius for points on plots
@@ -186,11 +192,12 @@ sim.Z = Z;
 sim.N = N;
 sim.C = C;
 sim.W = W;
-sim.f = f;
+sim.f = f_u;
 sim.A = A;
-sim.PLOT_COMMS = 0;
+sim.PLOT_COMMS = 1;
 sim.PLOT_STATE_3D = PLOT_STATE_3D;
 sim.PLOT_STATE_2D = PLOT_STATE_2D;
+sim.PLOT_STATE_PHI = 0;
 sim.PLOT_STATE_QUALITY = PLOT_STATE_QUALITY;
 sim.SAVE_PLOTS = SAVE_PLOTS;
 
@@ -211,7 +218,7 @@ for s=1:smax
     % Sensing radii
     R = tan(a) * Z;
     % Coverage quality
-    f = fu(Z, zmin, zmax);
+    f_u = fu(Z, zmin, zmax);
     % Sensing disks
     for i=1:N
         C{i} = [X(i) + R(i) * cos(t) ; Y(i) + R(i) * sin(t)];
@@ -234,8 +241,8 @@ for s=1:smax
         ind = sum(A(i,1:i));
         
 		% Find the cell of each node i based on its neighbors
-		W{i} = sensed_partitioning_decreasing_cell(Xb, Yb, ...
-            C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
+		W{i} = sensed_partitioning_decreasing_cell(region, a, b,...
+            X, Y, Z, C( logical(A(i,:)) ), f_u( logical(A(i,:)) ), ind, PPC);
     end
     
     
@@ -245,7 +252,7 @@ for s=1:smax
     sim.Z = Z;
     sim.C = C;
     sim.W = W;
-    sim.f = f;
+    sim.f = f_u;
     sim.A = A;
     clf
     plot_sim_UAV( sim );
@@ -256,10 +263,9 @@ for s=1:smax
     for i=1:N
         if ~isempty(W{i})
             cov_area(s) = cov_area(s) + polyarea_nan(W{i}(1,:), W{i}(2,:));
-            H(s) = H(s) + f(i) * polyarea_nan(W{i}(1,:), W{i}(2,:));
+            H(s) = H(s) + f_u(i) * polyarea_nan(W{i}(1,:), W{i}(2,:));
         end
     end
-    cov_area(s) = cov_area(s)/region_area;
     
     
     % ----------------- Control law -----------------
@@ -269,9 +275,9 @@ for s=1:smax
         
         % Give correct info based on adjacency matrix A
         [uX(i), uY(i), uZ(i)] = ...
-            control_uniform(region, zmin, zmax, a, ...
-            W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
-            i, X(i), Y(i), Z(i));
+            control_decreasing(region, zmin, zmax, a, b, ...
+            W(logical(A(i,:))), C(logical(A(i,:))), f_u(logical(A(i,:))), ...
+            i, X(i), Y(i), Z(i), gridsize);
     end
     
     % Control inputs with gain
@@ -303,7 +309,7 @@ fprintf('Average iteration time: %.4f s\n', average_iteration)
 %%%%%%%%%%%%%%%%%%% Final plots %%%%%%%%%%%%%%%%%%%
 % Plot covered area
 figure;
-plot( Tstep*linspace(1,smax,smax), 100*cov_area, 'b');
+plot( Tstep*linspace(1,smax,smax), 100*cov_area/region_area, 'b');
 hold on
 area_opt = 100 * N * pi * (zopt * tan(a))^2 / region_area;
 plot( Tstep*[1 smax], [area_opt area_opt], 'k--');

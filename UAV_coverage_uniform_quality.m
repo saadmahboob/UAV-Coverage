@@ -257,7 +257,6 @@ for s=1:smax
             H(s) = H(s) + f(i) * polyarea_nan(W{i}(1,:), W{i}(2,:));
         end
     end
-    cov_area(s) = cov_area(s)/region_area;
     
     
     % ----------------- Control law -----------------
@@ -301,7 +300,7 @@ fprintf('Average iteration time: %.4f s\n', average_iteration)
 %%%%%%%%%%%%%%%%%%% Final plots %%%%%%%%%%%%%%%%%%%
 % Plot covered area
 figure;
-plot( Tstep*linspace(1,smax,smax), 100*cov_area, 'b');
+plot( Tstep*linspace(1,smax,smax), 100*cov_area/region_area, 'b');
 hold on
 area_opt = 100 * N * pi * (zopt * tan(a))^2 / region_area;
 plot( Tstep*[1 smax], [area_opt area_opt], 'k--');

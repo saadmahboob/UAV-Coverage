@@ -21,7 +21,7 @@
 % SOFTWARE.
 
 clear variables
-close all
+% close all
 
 PLOT_STATE_3D = 0;
 PLOT_STATE_2D = 1;
@@ -60,9 +60,9 @@ zopt = z_optimal_decreasing(zmin, zmax);
 
 
 % Initial positions - 3 nodes - 12 seconds
-% X = [0.40, 0.60, 0.55];
-% Y = [0.50, 0.60, 0.50];
-% Z = [0.45, 0.55, 0.50];
+X = [0.40, 0.60, 0.55];
+Y = [0.50, 0.60, 0.50];
+Z = [0.45, 0.55, 0.50];
 
 % Initial positions - 9 nodes - 24 seconds
 % X = [0.40, 0.60, 0.55, 0.60, 0.50, 0.70, 0.60, 0.90, 0.80];
@@ -103,10 +103,10 @@ zopt = z_optimal_decreasing(zmin, zmax);
 % Z = [0.5, 0.6];
 
 % Initial position at zmax
-X = [1.6];
-Y = [1.1];
-Z = [zmax-0.01];
-Z = [0.9];
+% X = [1.6];
+% Y = [1.1];
+% Z = [zmax-0.01];
+% Z = [0.9];
 
 % All cases
 % X = [0.4, 0.7, 1.7, 1.8, 1.2, 1.7, 1.8];
@@ -122,7 +122,7 @@ R = tan(a) * Z;
 
 % ----------------- Simulation parameters -----------------
 % Simulation steps
-smax = 50;
+smax = 100;
 % Simulation time step
 Tstep = 0.1;
 % Points Per Circle

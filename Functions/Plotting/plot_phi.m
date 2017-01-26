@@ -48,6 +48,15 @@ end
 
 % Create contour plot
 contourf(xm, ym, f, 1000, 'LineStyle', 'none');
+% Create custom colormap
+s = 256;
+cMin = [1 1 1];
+cMax = [0 1 0];
+cmap = zeros(s,3);
+for i = 1:s
+    cmap(i,:) = cMin*(s - i)/(s - 1) + cMax*(i - 1)/(s - 1);
+end
+colormap(cmap)
 
 
 

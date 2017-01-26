@@ -13,11 +13,11 @@ load('results_uniform_phi_20170121_2329');
 
 
 %%%%%%%%%%%%%%% Select plots %%%%%%%%%%%%%%%
-AREA = 1;
-OBJECTIVE = 1;
-TRAJECTORIES = 1;
-INITIAL_QUALITY = 1;
-FINAL_QUALITY = 1;
+AREA = 0;
+OBJECTIVE = 0;
+TRAJECTORIES = 0;
+INITIAL_QUALITY = 0;
+FINAL_QUALITY = 0;
 INITIAL_STATE = 1;
 FINAL_STATE = 1;
 USE_PHI = 1;
@@ -33,7 +33,9 @@ if AREA
 	plot( Tstep*linspace(1,smax,smax), 100*cov_area, 'b');
 	hold on
 	area_opt = 100 * N * pi * (zopt * tan(a))^2 / region_area;
-	plot( Tstep*[1 smax], [area_opt area_opt], 'k--');
+    if ~USE_PHI
+        plot( Tstep*[1 smax], [area_opt area_opt], 'k--');
+    end
 	axis([0 Tstep*smax 0 100]);
 	% axis([0 Tstep*smax 0 140]);
 	h = xlabel('$Time ~(s)$');

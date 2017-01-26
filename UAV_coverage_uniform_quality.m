@@ -35,7 +35,7 @@ a = 20*pi/180;
 % Simulation duration in seconds
 Tfinal = 10;
 % Time step in seconds
-Tstep = 0.01;
+Tstep = 0.1;
 
 % Control law options
 % Planar control law gain
@@ -46,11 +46,11 @@ az = 1;
 % Network plots to show during simulation
 PLOT_STATE_2D = 0;
 PLOT_STATE_3D = 0;
-PLOT_STATE_QUALITY = 0;
+PLOT_STATE_QUALITY = 1;
 SAVE_PLOTS = 0;
 
 % Save simulation results to file
-SAVE_RESULTS = 1;
+SAVE_RESULTS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -117,9 +117,9 @@ Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
 % Z = [0.6, 0.6];
 
 % Initial position at zmax
-% X = [0.6];
-% Y = [0.1];
-% Z = [zmax-0.01];
+X = [0.6];
+Y = [0.1];
+Z = [zmax-0.01];
 
 % Almost coincident nodes
 % X = [1, 1] + 0.2;

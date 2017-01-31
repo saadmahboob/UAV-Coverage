@@ -19,7 +19,7 @@ TRAJECTORIES = 0;
 INITIAL_QUALITY = 0;
 FINAL_QUALITY = 0;
 INITIAL_STATE = 1;
-FINAL_STATE = 1;
+FINAL_STATE = 0;
 USE_PHI = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

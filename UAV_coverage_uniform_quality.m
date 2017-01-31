@@ -33,9 +33,9 @@ a = 20*pi/180;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 10;
+Tfinal = 15;
 % Time step in seconds
-Tstep = 0.1;
+Tstep = 0.01;
 
 % Control law options
 % Planar control law gain
@@ -45,12 +45,12 @@ az = 1;
 
 % Network plots to show during simulation
 PLOT_STATE_2D = 0;
-PLOT_STATE_3D = 0;
+PLOT_STATE_3D = 1;
 PLOT_STATE_QUALITY = 1;
-SAVE_PLOTS = 0;
+SAVE_PLOTS = 1;
 
 % Save simulation results to file
-SAVE_RESULTS = 0;
+SAVE_RESULTS = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -73,14 +73,19 @@ axis_scale = [-0.5 3 -0.5 3];
 
 % ---------------- Initial State ----------------
 % Initial positions - 3 nodes - 15 seconds
-% X = [0.40, 0.60, 0.55];
-% Y = [0.50, 0.60, 0.50];
+X = [0.40, 0.60, 0.55];
+Y = [0.50, 0.60, 0.50];
+Z = [0.45, 0.55, 0.50];
+
+% Initial positions - 3 nodes spread out - 5 seconds
+% X = [0.40, 2.00, 0.85];
+% Y = [0.50, 0.40, 2.00];
 % Z = [0.45, 0.55, 0.50];
 
 % Initial positions - 9 nodes - 20 seconds
-X = [0.40, 0.60, 0.55, 0.60, 0.50, 0.70, 0.60, 0.90, 0.80];
-Y = [0.50, 0.60, 0.50, 0.40, 0.60, 0.50, 0.75, 0.85, 0.95];
-Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
+% X = [0.40, 0.60, 0.55, 0.60, 0.50, 0.70, 0.60, 0.90, 0.80];
+% Y = [0.50, 0.60, 0.50, 0.40, 0.60, 0.50, 0.75, 0.85, 0.95];
+% Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
 
 % Initial positions - 7 nodes (deleted two from 9 nodes) - 8 seconds
 % X = [1.6910359269619974 1.0671555014553136 ...
@@ -117,9 +122,9 @@ Z = [0.45, 0.55, 0.50, 0.60, 0.40, 0.52, 0.57, 0.63, 0.65];
 % Z = [0.6, 0.6];
 
 % Initial position at zmax
-X = [0.6];
-Y = [0.1];
-Z = [zmax-0.01];
+% X = [0.6];
+% Y = [0.1];
+% Z = [zmax-0.01];
 
 % Almost coincident nodes
 % X = [1, 1] + 0.2;
@@ -245,6 +250,7 @@ for s=1:smax
     sim.W = W;
     sim.f = f;
     sim.A = A;
+    sim.s = s;
     clf
     plot_sim_UAV( sim );
     

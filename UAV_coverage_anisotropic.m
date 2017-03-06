@@ -28,7 +28,7 @@ close all
 %   Define sensing pattern through symbolic expression
 % Comparison with maximal inscribed disks
 %	Change Hopt and zopt accordingly
-%	Plot faded original sensing patterns
+% Plot quality
 
 %%%%%%%%%%%%%%%%%%% Set Simulation Options %%%%%%%%%%%%%%%%%%%
 % Network options

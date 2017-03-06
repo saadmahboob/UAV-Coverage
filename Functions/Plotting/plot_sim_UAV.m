@@ -78,9 +78,9 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY || sim.PLOT_
         clf
         hold on
         % Sensing patterns and cells
-        for i=1:sim.N
-            plot3_poly( [sim.C{i} ; zeros(size(sim.C{i}(1,:)))], 'r--');
-            plot3_poly( [sim.W{i} ; zeros(size(sim.W{i}(1,:)))], 'k');
+		for i=1:sim.N
+			plot3_poly( [sim.C{i} ; zeros(size(sim.C{i}(1,:)))], 'r--');
+			plot3_poly( [sim.W{i} ; zeros(size(sim.W{i}(1,:)))], 'k');
 		end
 		% Real sensing patterns
 		if isfield(sim, 'CIRCLE_APPROX') && sim.CIRCLE_APPROX
@@ -137,7 +137,7 @@ if sim.PLOT_STATE_3D || sim.PLOT_STATE_2D || sim.PLOT_STATE_QUALITY || sim.PLOT_
         plot_phi( sim.phi , sim.region );
         % Region
         plot_poly( sim.region, 'k');
-        % Sensing disks and cells
+        % Sensing patterns and cells
         for i=1:sim.N
             plot_poly( sim.C{i}, 'r--');
             plot_poly( sim.W{i}, 'k');

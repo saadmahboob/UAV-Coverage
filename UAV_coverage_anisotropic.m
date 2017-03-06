@@ -16,11 +16,14 @@ clear variables
 close all
 
 % TODO
-% Partitioning seems ok
+% Partitioning - ok
+% Area-objective calculation - ok
 % Communication range calculation
-% Check area-objective calculation
+% zopt function and Hopt calculation
 % Control law, use three parts (planar, altitude, rotational)
-% Add theta to ODE (dynamics function should be ok)
+%   planar - ok
+% Make control law parametric with regards to the jacobian
+%   Define sensing pattern through symbolic expression
 
 %%%%%%%%%%%%%%%%%%% Set Simulation Options %%%%%%%%%%%%%%%%%%%
 % Network options
@@ -30,9 +33,9 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 0.01;
+Tfinal = 1;
 % Time step in seconds
-Tstep = 0.01;
+Tstep = 0.1;
 
 % Control law options
 % Planar control law gain
@@ -165,7 +168,7 @@ for s=1:smax
     f = fu(Z, zmin, zmax);
     % Sensing patterns
     for i=1:N
-        C{i} = bsxfun(@plus, rot( (Z(i)-zmin).*Cb , TH(i) ), [X(i) ; Y(i)]);
+        C{i} = bsxfun(@plus, rot( (Z(i)-zmin).*Cb, TH(i) ), [X(i) ; Y(i)]);
     end
     % Communication range %%%%%%%%%%%% FIX THIS %%%%%%%%%%%%
     r_comm = 10*Cd_diameter * ones(size(f));
@@ -227,12 +230,10 @@ for s=1:smax
             % Give correct info based on adjacency matrix A
             [uX(i), uY(i), uZ(i)] = ...
                 control_uniform(region, zmin, zmax, a, ...
-                W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
-                ind, X(i), Y(i), Z(i));
+                W(logical(A(i,:))), C(logical(A(i,:))), ...
+                f(logical(A(i,:))), ind, X(i), Y(i), Z(i));
         else
-            [uX(i), uY(i), uZ(i)] = ...
-                control_uniform(region, zmin, zmax, a, ...
-                W, C, f, i, X(i), Y(i), Z(i));
+            [uX(i), uY(i)] = control_uniform_planar(region, W, C, f, i);
         end
     end
     
@@ -245,14 +246,15 @@ for s=1:smax
     
     % ----------------- Simulate with ode -----------------
     Tspan = [s*Tstep (s+1)*Tstep];
-    IC = [X Y Z]';
-    u = [uX uY uZ]';
-    [T, XYZ] = ode45(@(t,y) DYNAMICS_simple(t, y, u), Tspan, IC);
+    IC = [X Y Z TH]';
+    u = [uX uY uZ uTH]';
+    [T, ode_state] = ode45(@(t,y) DYNAMICS_simple(t, y, u), Tspan, IC);
     
     % Keep the last row of XYZ
-    X = XYZ(end, 1:N );
-    Y = XYZ(end, N+1:2*N );
-    Z = XYZ(end, 2*N+1:3*N );
+    X = ode_state(end, 1:N );
+    Y = ode_state(end, N+1:2*N );
+    Z = ode_state(end, 2*N+1:3*N );
+    TH = ode_state(end, 3*N+1:4*N );
     
 end
 elapsed_time = toc;
@@ -298,6 +300,7 @@ traj(3,:,:) = Zs;
 %%%%%%%%%%%%%%%%%%% Save Results %%%%%%%%%%%%%%%%%%%
 if SAVE_RESULTS
     filename = ...
-        strcat( 'results_uniform_' , datestr(clock,'yyyymmdd_HHMM') , '.mat' );
+        strcat( 'results_uniform_', ...
+        datestr(clock,'yyyymmdd_HHMM') , '.mat' );
     save(filename);
 end

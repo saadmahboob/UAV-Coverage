@@ -18,7 +18,6 @@ close all
 % TODO
 % Partitioning seems ok
 % Communication range calculation
-% Add switch for communication range
 % Check area-objective calculation
 % Control law, use three parts (planar, altitude, rotational)
 % Add theta to ODE (dynamics function should be ok)
@@ -51,6 +50,9 @@ SAVE_PLOTS = 0;
 
 % Save simulation results to file
 SAVE_RESULTS = 0;
+
+% Use finite communication range
+COMM_RANGE = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -97,6 +99,7 @@ t = fliplr(t); % flip to create CW ordered circles
 a = 1;
 b = 0.5;
 Cb = [a*cos(t) ; b*sin(t)];
+Cd_diameter = sensing_diameter(Cb);
 % Simulation data storage
 Xs = zeros(smax, N);
 Ys = zeros(smax, N);
@@ -164,8 +167,8 @@ for s=1:smax
     for i=1:N
         C{i} = bsxfun(@plus, rot( (Z(i)-zmin).*Cb , TH(i) ), [X(i) ; Y(i)]);
     end
-    % Communication range
-    r_comm = communication_range(Z, zmin, zmax, a);
+    % Communication range %%%%%%%%%%%% FIX THIS %%%%%%%%%%%%
+    r_comm = 10*Cd_diameter * ones(size(f));
     
     % Store simulation data
     Xs(s,:) = X;
@@ -175,15 +178,20 @@ for s=1:smax
     
     % Sensed space partitioning
     for i=1:N
-        % Find the nodes in communication range of each node i
-		A(i,:) = in_comms_range3( X, Y, Z, i, r_comm(i) );
-        
-        % The index of i in the reduced state vector is
-        ind = sum(A(i,1:i));
-        
-		% Find the cell of each node i based on its neighbors
-		W{i} = sensed_partitioning_uniform_cell(region, ...
-            C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
+        if COMM_RANGE
+            % Find the nodes in communication range of each node i
+            A(i,:) = in_comms_range3( X, Y, Z, i, r_comm(i) );
+
+            % The index of i in the reduced state vector is
+            ind = sum(A(i,1:i));
+
+            % Find the cell of each node i based on its neighbors
+            W{i} = sensed_partitioning_uniform_cell(region, ...
+                C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
+        else
+            % Find the cell of each node i based on all other nodes
+            W{i} = sensed_partitioning_uniform_cell(region, C, f, i);
+        end
     end
     
     
@@ -212,14 +220,20 @@ for s=1:smax
     
     % ----------------- Control law -----------------
     for i=1:N
-        % The index of i in the reduced state vector is
-        ind = sum(A(i,1:i));
-        
-        % Give correct info based on adjacency matrix A
-        [uX(i), uY(i), uZ(i)] = ...
-            control_uniform(region, zmin, zmax, a, ...
-            W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
-            ind, X(i), Y(i), Z(i));
+        if COMM_RANGE
+            % The index of i in the reduced state vector is
+            ind = sum(A(i,1:i));
+
+            % Give correct info based on adjacency matrix A
+            [uX(i), uY(i), uZ(i)] = ...
+                control_uniform(region, zmin, zmax, a, ...
+                W(logical(A(i,:))), C(logical(A(i,:))), f(logical(A(i,:))), ...
+                ind, X(i), Y(i), Z(i));
+        else
+            [uX(i), uY(i), uZ(i)] = ...
+                control_uniform(region, zmin, zmax, a, ...
+                W, C, f, i, X(i), Y(i), Z(i));
+        end
     end
     
     % Control inputs with gain

@@ -19,9 +19,11 @@ close all
 % Partitioning - ok
 % Area-objective calculation - ok
 % Communication range calculation
-% zopt function and Hopt calculation
+% zopt function and Hopt calculation - need symbolic
 % Control law, use three parts (planar, altitude, rotational)
 %   planar - ok
+%   altitude - test it
+%   rotational - test it
 % Make control law parametric with regards to the jacobian
 %   Define sensing pattern through symbolic expression
 

@@ -14,10 +14,14 @@
 
 % Assume the origin is the center of rotation of the sensing pattern C
 % Find the greatest distance from the origin to C
-function d = sensing_diameter(C)
-d = 0;
+function [dmin, dmax] = sensing_pattern_radii(C)
+dmin = Inf;
+dmax = 0;
 for i=1:length(C(1,:))
-    if norm(C(:,i)) > d
-        d = norm(C(:,i));
-    end
+	if norm(C(:,i)) > dmax
+		dmax = norm(C(:,i));
+	end
+	if norm(C(:,i)) < dmin
+		dmin = norm(C(:,i));
+	end
 end

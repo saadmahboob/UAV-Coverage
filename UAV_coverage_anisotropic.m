@@ -1,4 +1,4 @@
-% Copyright 2016-2017 Sotiris Papatheodorou
+% Copyright 2017 Sotiris Papatheodorou
 % 
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ close all
 %   rotational - test it
 % Make control law parametric with regards to the jacobian
 %   Define sensing pattern through symbolic expression
+% Comparison with maximal inscribed disks
+%	Change Hopt and zopt accordingly
+%	Plot faded original sensing patterns
 
 %%%%%%%%%%%%%%%%%%% Set Simulation Options %%%%%%%%%%%%%%%%%%%
 % Network options
@@ -58,6 +61,9 @@ SAVE_RESULTS = 0;
 
 % Use finite communication range
 COMM_RANGE = 0;
+
+% Use maximum circle approximation of sensing pattern
+CIRCLE_APPROX = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -113,8 +119,14 @@ t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
 % Sensing pattern with node at origin, zmin and theta_i = 0
-Cb = [a*cos(t) ; b*sin(t)];
-Cd_diameter = sensing_diameter(Cb);
+Cb_real = [a*cos(t) ; b*sin(t)];
+[Cb_min_radius, Cb_max_radius] = sensing_pattern_radii(Cb_real);
+if CIRCLE_APPROX
+	% Maximal inscribed circle
+	Cb = [Cb_min_radius*cos(t) ; Cb_min_radius*sin(t)];
+else
+	Cb = Cb_real;
+end
 % Simulation data storage
 Xs = zeros(smax, N);
 Ys = zeros(smax, N);
@@ -151,11 +163,13 @@ sim.Y = Y;
 sim.Z = Z;
 sim.TH = TH;
 sim.N = N;
+sim.Cb = Cb_real;
 sim.C = C;
 sim.W = W;
 sim.f = f;
 sim.A = A;
 sim.PLOT_COMMS = 0;
+sim.CIRCLE_APPROX = CIRCLE_APPROX;
 sim.PLOT_STATE_3D = PLOT_STATE_3D;
 sim.PLOT_STATE_2D = PLOT_STATE_2D;
 sim.PLOT_STATE_PHI = 0;
@@ -181,10 +195,10 @@ for s=1:smax
     % Sensing patterns
     for i=1:N
         C{i} = ...
-            bsxfun(@plus, rot( (Z(i)-zmin+1).*Cb, TH(i) ), [X(i) ; Y(i)]);
+            bsxfun(@plus, rot( Z(i)/zmin.*Cb, TH(i) ), [X(i) ; Y(i)]);
     end
     % Communication range %%%%%%%%%%%% FIX THIS %%%%%%%%%%%%
-    r_comm = 10*Cd_diameter * ones(size(f));
+    r_comm = 10*Cb_max_radius * ones(size(f));
     
     % Store simulation data
     Xs(s,:) = X;
@@ -215,6 +229,7 @@ for s=1:smax
     sim.X = X;
     sim.Y = Y;
     sim.Z = Z;
+	sim.TH = TH;
     sim.C = C;
     sim.W = W;
     sim.f = f;
@@ -251,13 +266,19 @@ for s=1:smax
                 control_uniform(region, zmin, zmax, a, ...
                 W(logical(A(i,:))), C(logical(A(i,:))), ...
                 f(logical(A(i,:))), ind, X(i), Y(i), Z(i));
-        else
-            [uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
-                f, i, Jxy);
-            uZ(i) = control_uniform_altitude(region, W, C, ...
-                f, dfu(Z(i), zmin, zmax), i, Jz);
-            uTH(i) = control_uniform_rotational(region, W, C, ...
-                f, i, Jth);
+		else
+			if CIRCLE_APPROX
+				[uX(i), uY(i), uZ(i)] = ...
+					control_uniform(region, zmin, zmax, ...
+					Cb_min_radius/Z(i), W, C, f, i, X(i), Y(i), Z(i));
+			else
+				[uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
+					f, i, Jxy);
+				uZ(i) = control_uniform_altitude(region, W, C, ...
+					f, dfu(Z(i), zmin, zmax), i, Jz);
+				uTH(i) = control_uniform_rotational(region, W, C, ...
+					f, i, Jth);
+			end
         end
     end
     

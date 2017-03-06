@@ -12,10 +12,10 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-function [uX, uY] = control_uniform_planar(region, W, C, f, i, J)
+function uTH = control_uniform_rotational(region, W, C, f, i, J)
 
 N = length(W);
-uXY = zeros(2,1);
+uTH = 0;
 
 if ~isempty(W{i})
     % Keep only CW (external) contours
@@ -79,7 +79,7 @@ if ~isempty(W{i})
                             nvector = rot(pt2-pt1, pi/2);
 
                             % X-Y control law
-                            uXY = uXY + (f(i)-f(j)) * J(pt1) * nvector;
+                            uTH = uTH + (f(i)-f(j)) * dot(J(pt1), nvector);
                         end
 
                         % If any of the points is inside a Cj, this is
@@ -97,13 +97,10 @@ if ~isempty(W{i})
                     nvector = rot(pt2-pt1, pi/2);
 
                     % X-Y control law
-                    uXY = uXY + f(i) * J(pt1) * nvector;
+                    uTH = uTH + f(i) * dot(J(pt1), nvector);
                 end
 
             end
         end
     end % line segment for
 end
-
-uX = uXY(1);
-uY = uXY(2);

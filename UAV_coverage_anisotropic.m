@@ -33,7 +33,7 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 1;
+Tfinal = 20;
 % Time step in seconds
 Tstep = 0.1;
 
@@ -59,6 +59,18 @@ COMM_RANGE = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+
+%%%%%%%%%%%%%%%%%%% Sensing Pattern Parametric equation %%%%%%%%%%%%%%%%%%%
+% Parametric equation of base sensing patern:
+% node at [0 0 zmin] and orientation 0
+a = 0.2;
+b = 0.1;
+syms t gx gy g
+assume([t gx gy g],'real');
+gx = a * cos(t);
+gy = b * sin(t);
+g = [gx ; gy];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -99,8 +111,6 @@ t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
 % Sensing pattern with node at origin, zmin and theta_i = 0
-a = 1;
-b = 0.5;
 Cb = [a*cos(t) ; b*sin(t)];
 Cd_diameter = sensing_diameter(Cb);
 % Simulation data storage
@@ -168,7 +178,8 @@ for s=1:smax
     f = fu(Z, zmin, zmax);
     % Sensing patterns
     for i=1:N
-        C{i} = bsxfun(@plus, rot( (Z(i)-zmin).*Cb, TH(i) ), [X(i) ; Y(i)]);
+        C{i} = ...
+            bsxfun(@plus, rot( (Z(i)-zmin+1).*Cb, TH(i) ), [X(i) ; Y(i)]);
     end
     % Communication range %%%%%%%%%%%% FIX THIS %%%%%%%%%%%%
     r_comm = 10*Cd_diameter * ones(size(f));
@@ -223,6 +234,12 @@ for s=1:smax
     
     % ----------------- Control law -----------------
     for i=1:N
+        % Create anonymous functions for the Jacobians
+        % The functions include parameters specific to this node
+        Jxy = @(q) J_ellipse_xy(q);
+        Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, a, b);
+        Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, a, b);
+        
         if COMM_RANGE
             % The index of i in the reduced state vector is
             ind = sum(A(i,1:i));
@@ -233,7 +250,12 @@ for s=1:smax
                 W(logical(A(i,:))), C(logical(A(i,:))), ...
                 f(logical(A(i,:))), ind, X(i), Y(i), Z(i));
         else
-            [uX(i), uY(i)] = control_uniform_planar(region, W, C, f, i);
+            [uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
+                f, i, Jxy);
+            uZ(i) = control_uniform_altitude(region, W, C, ...
+                f, dfu(Z(i), zmin, zmax), i, Jz);
+            uTH(i) = control_uniform_rotational(region, W, C, ...
+                f, i, Jth);
         end
     end
     

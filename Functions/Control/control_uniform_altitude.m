@@ -12,10 +12,10 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-function [uX, uY] = control_uniform_planar(region, W, C, f, i, J)
+function uZ = control_uniform_altitude(region, W, C, f, df, i, J)
 
 N = length(W);
-uXY = zeros(2,1);
+uZ = 0;
 
 if ~isempty(W{i})
     % Keep only CW (external) contours
@@ -79,7 +79,7 @@ if ~isempty(W{i})
                             nvector = rot(pt2-pt1, pi/2);
 
                             % X-Y control law
-                            uXY = uXY + (f(i)-f(j)) * J(pt1) * nvector;
+                            uZ = uZ + (f(i)-f(j)) * dot(J(pt1), nvector);
                         end
 
                         % If any of the points is inside a Cj, this is
@@ -97,13 +97,13 @@ if ~isempty(W{i})
                     nvector = rot(pt2-pt1, pi/2);
 
                     % X-Y control law
-                    uXY = uXY + f(i) * J(pt1) * nvector;
+                    uZ = uZ + f(i) * dot(J(pt1), nvector);
                 end
 
             end
         end
     end % line segment for
+    
+    % Area integral for Z control law
+    uZ = uZ + df * polyarea_nan(W{i}(1,:), W{i}(2,:));
 end
-
-uX = uXY(1);
-uY = uXY(2);

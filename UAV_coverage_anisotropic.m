@@ -38,7 +38,7 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 20;
+Tfinal = 1;
 % Time step in seconds
 Tstep = 0.1;
 
@@ -63,7 +63,7 @@ SAVE_RESULTS = 0;
 COMM_RANGE = 0;
 
 % Use maximum circle approximation of sensing pattern
-CIRCLE_APPROX = 1;
+CIRCLE_APPROX = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -104,8 +104,6 @@ TH = [0.1 -0.2 0.5];
 
 
 % ---------------- Simulation initializations ----------------
-% Caclulate optimal altitude
-zopt = z_optimal_uniform(zmin, zmax);
 % Number of nodes
 N = length(X);
 % Simulation steps
@@ -314,9 +312,6 @@ fprintf('Average iteration time: %.4f s\n', average_iteration)
 % Plot covered area
 figure;
 plot( Tstep*linspace(1,smax,smax), 100*cov_area/region_area, 'b');
-hold on
-area_opt = 100 * N * pi * (zopt * tan(a))^2 / region_area;
-plot( Tstep*[1 smax], [area_opt area_opt], 'k--');
 axis([0 Tstep*smax 0 100]);
 % axis([0 Tstep*smax 0 140]);
 h = xlabel('$Time ~(s)$');
@@ -325,12 +320,8 @@ h = ylabel('$A_{cov}~(\%)$');
 set(h,'Interpreter','latex')
 
 % Plot objective
-H_opt = N * pi * (zopt * tan(a))^2 * fu(zopt, zmin, zmax);
 figure;
-plot( Tstep*linspace(1,smax,smax), 100*H / H_opt, 'b');
-hold on
-plot( Tstep*[1 smax], [100 100], 'k--');
-axis([0 Tstep*smax 0 100]);
+plot( Tstep*linspace(1,smax,smax), H, 'b');
 h = xlabel('$Time ~(s)$');
 set(h,'Interpreter','latex')
 h = ylabel('$\frac{\mathcal{H}}{\mathcal{H}_{opt}} ~(\%)$');

@@ -16,7 +16,8 @@ clear variables
 close all
 
 % TODO
-% Partitioning - ok
+% Partitioning - NOT ok
+%   Fix arbitrary partitioning
 % Area-objective calculation - ok
 % Communication range calculation
 % zopt function and Hopt calculation - need symbolic
@@ -38,7 +39,7 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 1;
+Tfinal = 0.1;
 % Time step in seconds
 Tstep = 0.1;
 
@@ -102,6 +103,22 @@ Y = [0.50, 0.60, 0.50];
 Z = [0.45, 0.55, 0.50];
 TH = [0.1 -0.2 0.5];
 
+% YS initial
+% X = [1.8213681165510334 1.4816585705892809 2.0061832707330876 ...
+%     1.5360483374617235 1.4431379448894295 1.7923852150366215 ...
+%     1.3049294775487454 1.9108348621516573 ];
+% Y = [0.91283954968302494 1.2055884878021055 1.3419690768039203 ...
+%     1.4543510611496755 1.6047375622673639 1.5852600819312745 ...
+%     1.1343085651524876 0.79464716869746166 ];
+% TH = [3.6455122679580643 4.051626724479747 5.5459617522932909 ...
+%     5.1451392413685149 2.7555925533560464 5.2970953960185225 ...
+%     2.9146119946177227 4.6080480741683711 ];
+% Z = ones(size(X));
+
+X = [1 1.2];
+Y = [1 1];
+Z = [1 1];
+TH = [0 pi/2];
 
 % ---------------- Simulation initializations ----------------
 % Number of nodes
@@ -214,11 +231,12 @@ for s=1:smax
             ind = sum(A(i,1:i));
 
             % Find the cell of each node i based on its neighbors
-            W{i} = sensed_partitioning_uniform_cell(region, ...
+            W{i} = sensed_partitioning_uniform_anisotropic_cell(region, ...
                 C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
         else
             % Find the cell of each node i based on all other nodes
-            W{i} = sensed_partitioning_uniform_cell(region, C, f, i);
+            W{i} = sensed_partitioning_uniform_anisotropic_cell(region, ...
+                C, f, i);
         end
     end
     

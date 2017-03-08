@@ -41,14 +41,14 @@ axy = 1;
 az = 1;
 
 % Network plots to show during simulation
-PLOT_STATE_2D = 0;
-PLOT_STATE_3D = 1;
-PLOT_STATE_PHI = 1;
-PLOT_STATE_QUALITY = 1;
-SAVE_PLOTS = 1;
+PLOT_STATE_2D = 1;
+PLOT_STATE_3D = 0;
+PLOT_STATE_PHI = 0;
+PLOT_STATE_QUALITY = 0;
+SAVE_PLOTS = 0;
 
 % Save simulation results to file
-SAVE_RESULTS = 1;
+SAVE_RESULTS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

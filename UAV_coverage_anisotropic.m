@@ -39,7 +39,7 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 0.1;
+Tfinal = 10;
 % Time step in seconds
 Tstep = 0.1;
 
@@ -73,8 +73,8 @@ CIRCLE_APPROX = 0;
 % Parametric equation of base sensing patern:
 % node at [0 0 zmin] and orientation 0
 % a = 0.5 b = 0.3 in ICRA14
-a = 0.1;
-b = 0.06;
+a = 0.15;
+b = 0.09;
 syms t gx gy g
 assume([t gx gy g],'real');
 gx = a * cos(t);
@@ -135,7 +135,7 @@ t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
 % Sensing pattern with node at origin, zmin and theta_i = 0
-Cb_real = [a*cos(t) ; b*sin(t)];
+Cb_real = [a*cos(t) + sqrt(a^2-b^2) ; b*sin(t)];
 [Cb_min_radius, Cb_max_radius] = sensing_pattern_radii(Cb_real);
 if CIRCLE_APPROX
 	% Maximal inscribed circle

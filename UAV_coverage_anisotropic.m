@@ -34,9 +34,9 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 30;
+Tfinal = 20;
 % Time step in seconds
-Tstep = 0.01;
+Tstep = 0.1;
 
 % Control law options
 % Planar control law gain
@@ -59,7 +59,7 @@ PLOT_STATE_QUALITY = 0;
 SAVE_PLOTS = 0;
 
 % Save simulation results to file
-SAVE_RESULTS = 1;
+SAVE_RESULTS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -70,6 +70,9 @@ SAVE_RESULTS = 1;
 % a = 0.5 b = 0.3 in ICRA14
 a = 0.15;
 b = 0.09;
+% Offset of the ellipse center
+c_offset_x = a/2;
+c_offset_y = 0;
 syms t gx gy g
 assume([t gx gy g],'real');
 gx = a * cos(t);
@@ -111,10 +114,10 @@ TH = [2.4679773854259808 0.28861356578484565 4.9641841747027469 ...
 	3.5407470134652721 1.2436339452103413 ];
 Z = [0.8 0.55 0.9 0.65 0.7 0.85 1 1.1];
 
-X = [1 1.2];
-Y = [1 1];
-Z = [1 1.1];
-TH = [-1.2*pi/2 -pi/2];
+% X = [1 1.2];
+% Y = [1 1];
+% Z = [1 1.1];
+% TH = [-1.2*pi/2 -pi/2];
 
 % ---------------- Simulation initializations ----------------
 % Number of nodes
@@ -130,7 +133,7 @@ t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
 % Sensing pattern with node at origin, zmin and theta_i = 0
-Cb_real = [a*cos(t) + a/2 ; b*sin(t)];
+Cb_real = [a*cos(t) + c_offset_x ; b*sin(t) + c_offset_y];
 [Cb_min_radius, Cb_max_radius] = sensing_pattern_radii(Cb_real);
 if CIRCLE_APPROX
 	% Maximal inscribed circle
@@ -236,9 +239,6 @@ for s=1:smax
     sim.s = s;
     clf
     plot_sim_UAV( sim );
-    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
-%     hold on
-    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
     
     
     % ----------------- Objective -----------------
@@ -258,15 +258,15 @@ for s=1:smax
 		if CIRCLE_APPROX
 			Jxy = @(q) J_ellipse_xy(q);
 			Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, ...
-				Cb_min_radius, Cb_min_radius);
+				Cb_min_radius, Cb_min_radius, 0, 0);
 			Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, ...
-				Cb_min_radius, Cb_min_radius);
+				Cb_min_radius, Cb_min_radius, 0, 0);
 		else
 			Jxy = @(q) J_ellipse_xy(q);
 			Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, ...
-				a, b);
+				a, b, c_offset_x, c_offset_y);
 			Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, ...
-				a, b);
+				a, b, c_offset_x, c_offset_y);
 		end
         
 		[uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
@@ -277,9 +277,6 @@ for s=1:smax
 			f, i, Jth);
     end
     
-    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
-%     pause(0.05)
-    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
     
     % Control inputs with gain
     uX = axy * uX;
@@ -314,7 +311,6 @@ fprintf('Average iteration time: %.4f s\n', average_iteration)
 figure;
 plot( Tstep*linspace(1,smax,smax), 100*cov_area/region_area, 'b');
 axis([0 Tstep*smax 0 100]);
-% axis([0 Tstep*smax 0 140]);
 h = xlabel('$Time ~(s)$');
 set(h,'Interpreter','latex')
 h = ylabel('$A_{cov}~(\%)$');
@@ -325,14 +321,15 @@ figure;
 plot( Tstep*linspace(1,smax,smax), H, 'b');
 h = xlabel('$Time ~(s)$');
 set(h,'Interpreter','latex')
-h = ylabel('$\frac{\mathcal{H}}{\mathcal{H}_{opt}} ~(\%)$');
+h = ylabel('$\mathcal{H}$');
 set(h,'Interpreter','latex')
 
 % Save trajectories
-traj = zeros(3,smax,N);
+traj = zeros(4,smax,N);
 traj(1,:,:) = Xs;
 traj(2,:,:) = Ys;
 traj(3,:,:) = Zs;
+traj(4,:,:) = THs;
 
 %%%%%%%%%%%%%%%%%%% Save Results %%%%%%%%%%%%%%%%%%%
 if SAVE_RESULTS

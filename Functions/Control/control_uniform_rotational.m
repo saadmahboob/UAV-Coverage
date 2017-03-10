@@ -81,13 +81,6 @@ if ~isempty(W{i})
 
                             % X-Y control law
                             uTH = uTH + (f(i)-f(j)) * dot(J(pt1), nvector);
-                            
-                            %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
-%                             plot_poly(pt1, 'b.');
-%                             plot_poly(pt2, 'b.');
-% 							plot_poly([pt1 pt1+J(pt1)], 'r');
-%                             plot_poly([pt1 pt1+nvector], 'm');
-                            %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                         end
 
                         % If any of the points is inside a Cj, this is
@@ -106,13 +99,6 @@ if ~isempty(W{i})
 
                     % X-Y control law
                     uTH = uTH + f(i) * dot(J(pt1), nvector);
-                    
-                    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
-%                     plot_poly(pt1, 'g.');
-%                     plot_poly(pt2, 'g.');
-% 					plot_poly([pt1 pt1+J(pt1)], 'r');
-%                     plot_poly([pt1 pt1+nvector], 'm');
-                    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                 end
 
             end

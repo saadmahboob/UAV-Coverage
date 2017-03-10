@@ -13,7 +13,7 @@
 % limitations under the License.
 
 % Jacobian of an elliptical sensing pattern at point q on the ellipse
-function T = J_ellipse_th(q, xi, yi, zi, thi, zmin, a, b)
+function T = J_ellipse_th(q, xi, yi, zi, thi, zmin, a, b, c_offset_x, c_offset_y)
 
 % Find value of parameter t
 q = q - [xi ; yi];
@@ -22,5 +22,5 @@ q = rot(q, -thi);
 t = atan2( q(2)/b, q(1)/a );
 
 % Corresponding point on base pattern
-g = [a*cos(t) ; b*sin(t)];
+g = [a*cos(t) + c_offset_x ; b*sin(t) + c_offset_y];
 T = zi / zmin * [-sin(thi) -cos(thi) ; cos(thi) -sin(thi)] * g;

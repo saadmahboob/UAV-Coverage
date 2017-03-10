@@ -16,20 +16,15 @@ clear variables
 close all
 
 % TODO
-% Partitioning - NOT ok
-%   Fix arbitrary partitioning
-% Area-objective calculation - ok
+% Partitioning - ok
+% Area-objective calculation - NOT ok for equal altitudes
 % Communication range calculation
-% zopt function and Hopt calculation - need symbolic
 % Control law, use three parts (planar, altitude, rotational)
 %   planar - ok
-%   altitude - test it
-%   rotational - test it
+%   altitude - ok for circle
+%   rotational - NOT ok
 % Make control law parametric with regards to the jacobian
 %   Define sensing pattern through symbolic expression
-% Comparison with maximal inscribed disks
-%	Change Hopt and zopt accordingly
-% Plot quality
 
 %%%%%%%%%%%%%%%%%%% Set Simulation Options %%%%%%%%%%%%%%%%%%%
 % Network options
@@ -39,17 +34,17 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 10;
+Tfinal = 20;
 % Time step in seconds
 Tstep = 0.1;
 
 % Control law options
 % Planar control law gain
-axy = 1;
+axy = 0;
 % Altitude control law gain
-az = 1;
+az = 0;
 % Rotational control law gain
-ath = 1;
+ath = 5;
 
 % Network plots to show during simulation
 PLOT_STATE_2D = 1;
@@ -105,21 +100,21 @@ Z = [0.45, 0.55, 0.50];
 TH = [0.1 -0.2 0.5];
 
 % YS initial
-X = [1.8213681165510334 1.4816585705892809 2.0061832707330876 ...
-    1.5360483374617235 1.4431379448894295 1.7923852150366215 ...
-    1.3049294775487454 1.9108348621516573 ];
-Y = [0.91283954968302494 1.2055884878021055 1.3419690768039203 ...
-    1.4543510611496755 1.6047375622673639 1.5852600819312745 ...
-    1.1343085651524876 0.79464716869746166 ];
-TH = [3.6455122679580643 4.051626724479747 5.5459617522932909 ...
-    5.1451392413685149 2.7555925533560464 5.2970953960185225 ...
-    2.9146119946177227 4.6080480741683711 ];
-Z = ones(size(X));
+% X = [1.8213681165510334 1.4816585705892809 2.0061832707330876 ...
+%     1.5360483374617235 1.4431379448894295 1.7923852150366215 ...
+%     1.3049294775487454 1.9108348621516573 ];
+% Y = [0.91283954968302494 1.2055884878021055 1.3419690768039203 ...
+%     1.4543510611496755 1.6047375622673639 1.5852600819312745 ...
+%     1.1343085651524876 0.79464716869746166 ];
+% TH = [2.4679773854259808 0.28861356578484565 4.9641841747027469 ...
+% 	0.274211804968107 3.672512046080453 1.3573179379420355 ...
+% 	3.5407470134652721 1.2436339452103413 ];
+% Z = [0.8 0.55 0.9 0.65 0.7 0.85 1 1.1];
 
-% X = [1 1.2];
-% Y = [1 1];
-% Z = [1 1];
-% TH = [0 pi/2];
+X = [1 1.2];
+Y = [1 1];
+Z = [1 1.1];
+TH = [0 pi/2];
 
 % ---------------- Simulation initializations ----------------
 % Number of nodes
@@ -135,7 +130,7 @@ t = linspace(0, 2*pi, PPC+1);
 t = t(1:end-1); % remove duplicate last element
 t = fliplr(t); % flip to create CW ordered circles
 % Sensing pattern with node at origin, zmin and theta_i = 0
-Cb_real = [a*cos(t) + sqrt(a^2-b^2) ; b*sin(t)];
+Cb_real = [a*cos(t) + a/2 ; b*sin(t)];
 [Cb_min_radius, Cb_max_radius] = sensing_pattern_radii(Cb_real);
 if CIRCLE_APPROX
 	% Maximal inscribed circle
@@ -210,8 +205,7 @@ for s=1:smax
     f = fu(Z, zmin, zmax);
     % Sensing patterns
     for i=1:N
-        C{i} = ...
-            bsxfun(@plus, rot( Z(i)/zmin.*Cb, TH(i) ), [X(i) ; Y(i)]);
+        C{i} = bsxfun(@plus, rot( Z(i)/zmin.*Cb, TH(i) ), [X(i) ; Y(i)]);
     end
     % Communication range %%%%%%%%%%%% FIX THIS %%%%%%%%%%%%
     r_comm = 10*Cb_max_radius * ones(size(f));
@@ -287,7 +281,7 @@ for s=1:smax
 			if CIRCLE_APPROX
 				[uX(i), uY(i), uZ(i)] = ...
 					control_uniform(region, zmin, zmax, ...
-					Cb_min_radius/Z(i), W, C, f, i, X(i), Y(i), Z(i));
+					atan(Cb_min_radius/Z(i)), W, C, f, i, X(i), Y(i), Z(i));
 			else
 				[uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
 					f, i, Jxy);

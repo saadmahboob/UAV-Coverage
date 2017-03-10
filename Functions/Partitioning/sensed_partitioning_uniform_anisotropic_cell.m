@@ -27,11 +27,15 @@ for j=1:N
         % Remove a portion of the sensing region if fi <= fj
         if f(i) <= f(j)
             % Remove Cj
-            [pbx, pby] = polybool( 'minus', W(1,:), W(2,:),...
-            C{j}(1,:), C{j}(2,:) );
+			if ~isempty(W)
+				[pbx, pby] = polybool( 'minus', W(1,:), W(2,:),...
+				C{j}(1,:), C{j}(2,:) );
 
-            % Save to the current cell
-            W = [pbx ; pby];
+				% Save to the current cell
+				W = [pbx ; pby];
+			else
+				break;
+			end
         end
     end
 end

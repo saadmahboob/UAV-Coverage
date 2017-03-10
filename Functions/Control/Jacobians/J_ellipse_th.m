@@ -23,5 +23,4 @@ t = atan2( q(2)/b, q(1)/a );
 
 % Corresponding point on base pattern
 g = [a*cos(t) ; b*sin(t)];
-T = zi / zmin * ...
-    [-sin(thi) -cos(thi) ; cos(thi) -sin(thi)] * g;
+T = zi / zmin * [-sin(thi) -cos(thi) ; cos(thi) -sin(thi)] * g;

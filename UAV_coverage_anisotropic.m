@@ -20,8 +20,8 @@ close all
 % Area-objective calculation - NOT ok for equal altitudes
 % Communication range calculation
 % Control law, use three parts (planar, altitude, rotational)
-%   planar - ok
-%   altitude - ok for circle
+%   planar - ok (checked with circles)
+%   altitude - ok (checked with circles)
 %   rotational - NOT ok
 % Make control law parametric with regards to the jacobian
 %   Define sensing pattern through symbolic expression
@@ -34,17 +34,23 @@ zmax = 2.3;
 
 % Simulation options
 % Simulation duration in seconds
-Tfinal = 20;
+Tfinal = 30;
 % Time step in seconds
-Tstep = 0.1;
+Tstep = 0.01;
 
 % Control law options
 % Planar control law gain
-axy = 0;
+axy = 1;
 % Altitude control law gain
-az = 0;
+az = 1;
 % Rotational control law gain
 ath = 5;
+
+% Use finite communication range
+COMM_RANGE = 0;
+
+% Use maximum circle approximation of sensing pattern
+CIRCLE_APPROX = 0;
 
 % Network plots to show during simulation
 PLOT_STATE_2D = 1;
@@ -53,13 +59,7 @@ PLOT_STATE_QUALITY = 0;
 SAVE_PLOTS = 0;
 
 % Save simulation results to file
-SAVE_RESULTS = 0;
-
-% Use finite communication range
-COMM_RANGE = 0;
-
-% Use maximum circle approximation of sensing pattern
-CIRCLE_APPROX = 0;
+SAVE_RESULTS = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -100,21 +100,21 @@ Z = [0.45, 0.55, 0.50];
 TH = [0.1 -0.2 0.5];
 
 % YS initial
-% X = [1.8213681165510334 1.4816585705892809 2.0061832707330876 ...
-%     1.5360483374617235 1.4431379448894295 1.7923852150366215 ...
-%     1.3049294775487454 1.9108348621516573 ];
-% Y = [0.91283954968302494 1.2055884878021055 1.3419690768039203 ...
-%     1.4543510611496755 1.6047375622673639 1.5852600819312745 ...
-%     1.1343085651524876 0.79464716869746166 ];
-% TH = [2.4679773854259808 0.28861356578484565 4.9641841747027469 ...
-% 	0.274211804968107 3.672512046080453 1.3573179379420355 ...
-% 	3.5407470134652721 1.2436339452103413 ];
-% Z = [0.8 0.55 0.9 0.65 0.7 0.85 1 1.1];
+X = [1.8213681165510334 1.4816585705892809 2.0061832707330876 ...
+    1.5360483374617235 1.4431379448894295 1.7923852150366215 ...
+    1.3049294775487454 1.9108348621516573 ];
+Y = [0.91283954968302494 1.2055884878021055 1.3419690768039203 ...
+    1.4543510611496755 1.6047375622673639 1.5852600819312745 ...
+    1.1343085651524876 0.79464716869746166 ];
+TH = [2.4679773854259808 0.28861356578484565 4.9641841747027469 ...
+	0.274211804968107 3.672512046080453 1.3573179379420355 ...
+	3.5407470134652721 1.2436339452103413 ];
+Z = [0.8 0.55 0.9 0.65 0.7 0.85 1 1.1];
 
 X = [1 1.2];
 Y = [1 1];
 Z = [1 1.1];
-TH = [0 pi/2];
+TH = [-1.2*pi/2 -pi/2];
 
 % ---------------- Simulation initializations ----------------
 % Number of nodes
@@ -218,21 +218,9 @@ for s=1:smax
     
     % Sensed space partitioning
     for i=1:N
-        if COMM_RANGE
-            % Find the nodes in communication range of each node i
-            A(i,:) = in_comms_range3( X, Y, Z, i, r_comm(i) );
-
-            % The index of i in the reduced state vector is
-            ind = sum(A(i,1:i));
-
-            % Find the cell of each node i based on its neighbors
-            W{i} = sensed_partitioning_uniform_anisotropic_cell(region, ...
-                C( logical(A(i,:)) ), f( logical(A(i,:)) ), ind);
-        else
-            % Find the cell of each node i based on all other nodes
-            W{i} = sensed_partitioning_uniform_anisotropic_cell(region, ...
-                C, f, i);
-        end
+		% Find the cell of each node i based on all other nodes
+		W{i} = sensed_partitioning_uniform_anisotropic_cell(region, ...
+			C, f, i);
     end
     
     
@@ -264,36 +252,29 @@ for s=1:smax
     
     
     % ----------------- Control law -----------------
-    for i=1:N
+    parfor i=1:N % parfor faster here
         % Create anonymous functions for the Jacobians
         % The functions include parameters specific to this node
-        Jxy = @(q) J_ellipse_xy(q);
-        Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, a, b);
-        Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, a, b);
-        
-        if COMM_RANGE
-            % The index of i in the reduced state vector is
-            ind = sum(A(i,1:i));
-
-            % Give correct info based on adjacency matrix A
-            [uX(i), uY(i), uZ(i)] = ...
-                control_uniform(region, zmin, zmax, a, ...
-                W(logical(A(i,:))), C(logical(A(i,:))), ...
-                f(logical(A(i,:))), ind, X(i), Y(i), Z(i));
+		if CIRCLE_APPROX
+			Jxy = @(q) J_ellipse_xy(q);
+			Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, ...
+				Cb_min_radius, Cb_min_radius);
+			Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, ...
+				Cb_min_radius, Cb_min_radius);
 		else
-			if CIRCLE_APPROX
-				[uX(i), uY(i), uZ(i)] = ...
-					control_uniform(region, zmin, zmax, ...
-					atan(Cb_min_radius/Z(i)), W, C, f, i, X(i), Y(i), Z(i));
-			else
-				[uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
-					f, i, Jxy);
-				uZ(i) = control_uniform_altitude(region, W, C, ...
-					f, dfu(Z(i), zmin, zmax), i, Jz);
-				uTH(i) = control_uniform_rotational(region, W, C, ...
-					f, i, Jth);
-			end
-        end
+			Jxy = @(q) J_ellipse_xy(q);
+			Jz = @(q) J_ellipse_z(q, X(i), Y(i), Z(i), TH(i), zmin, ...
+				a, b);
+			Jth = @(q) J_ellipse_th(q, X(i), Y(i), Z(i), TH(i), zmin, ...
+				a, b);
+		end
+        
+		[uX(i), uY(i)] = control_uniform_planar(region, W, C, ...
+			f, i, Jxy);
+		uZ(i) = control_uniform_altitude(region, W, C, ...
+			f, dfu(Z(i), zmin, zmax), i, Jz);
+		uTH(i) = control_uniform_rotational(region, W, C, ...
+			f, i, Jth);
     end
     
     %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
@@ -356,7 +337,7 @@ traj(3,:,:) = Zs;
 %%%%%%%%%%%%%%%%%%% Save Results %%%%%%%%%%%%%%%%%%%
 if SAVE_RESULTS
     filename = ...
-        strcat( 'results_uniform_', ...
+        strcat( 'results_uniform_anisotropic_', ...
         datestr(clock,'yyyymmdd_HHMM') , '.mat' );
     save(filename);
 end

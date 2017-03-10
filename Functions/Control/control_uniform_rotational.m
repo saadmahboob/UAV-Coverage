@@ -85,6 +85,7 @@ if ~isempty(W{i})
                             %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
 %                             plot_poly(pt1, 'b.');
 %                             plot_poly(pt2, 'b.');
+% 							plot_poly([pt1 pt1+J(pt1)], 'r');
 %                             plot_poly([pt1 pt1+nvector], 'm');
                             %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                         end
@@ -109,6 +110,7 @@ if ~isempty(W{i})
                     %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
 %                     plot_poly(pt1, 'g.');
 %                     plot_poly(pt2, 'g.');
+% 					plot_poly([pt1 pt1+J(pt1)], 'r');
 %                     plot_poly([pt1 pt1+nvector], 'm');
                     %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                 end

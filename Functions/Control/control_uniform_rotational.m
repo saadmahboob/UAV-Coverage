@@ -49,6 +49,7 @@ if ~isempty(W{i})
         % endpoints of the current line segment
         pt1 = Wi(:,k);
         pt2 = Wi(:,k+1);
+        
 
         % Check if they are on the boundary. If both are on it dont
         % integrate
@@ -60,7 +61,7 @@ if ~isempty(W{i})
             [~, onCi1] = inpolygon( pt1(1), pt1(2), C{i}(1,:), C{i}(2,:) );
             [~, onCi2] = inpolygon( pt2(1), pt2(2), C{i}(1,:), C{i}(2,:) );
 
-            if (onCi1 || onCi2)
+            if (onCi1 && onCi2)
                 % Check if they are both inside Cj for all j in overlap
                 % If they are, then this is a dominant arc
                 free_arc = 1; % Free arc flag
@@ -80,6 +81,12 @@ if ~isempty(W{i})
 
                             % X-Y control law
                             uTH = uTH + (f(i)-f(j)) * dot(J(pt1), nvector);
+                            
+                            %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
+%                             plot_poly(pt1, 'b.');
+%                             plot_poly(pt2, 'b.');
+%                             plot_poly([pt1 pt1+nvector], 'm');
+                            %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                         end
 
                         % If any of the points is inside a Cj, this is
@@ -98,6 +105,12 @@ if ~isempty(W{i})
 
                     % X-Y control law
                     uTH = uTH + f(i) * dot(J(pt1), nvector);
+                    
+                    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
+%                     plot_poly(pt1, 'g.');
+%                     plot_poly(pt2, 'g.');
+%                     plot_poly([pt1 pt1+nvector], 'm');
+                    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
                 end
 
             end

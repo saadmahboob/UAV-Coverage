@@ -122,7 +122,7 @@ N = length(X);
 % Simulation steps
 smax = floor(Tfinal/Tstep);
 % Points Per Circle
-PPC = 60;
+PPC = 120;
 % Radius for points on plots
 disk_rad = 0.02;
 % Vector for circle parameterization
@@ -248,6 +248,9 @@ for s=1:smax
     sim.s = s;
     clf
     plot_sim_UAV( sim );
+    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
+%     hold on
+    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
     
     
     % ----------------- Objective -----------------
@@ -292,6 +295,10 @@ for s=1:smax
 			end
         end
     end
+    
+    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
+%     pause(0.05)
+    %%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%
     
     % Control inputs with gain
     uX = axy * uX;

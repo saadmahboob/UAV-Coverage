@@ -20,7 +20,7 @@ close all
 addpath( genpath('Functions') );
 
 % Load results
-load('results_uniform_anisotropic_norot_20170310_1759');
+load('results_uniform_anisotropic_20170310_1837');
 
 
 %%%%%%%%%%%%%%% Select plots %%%%%%%%%%%%%%%

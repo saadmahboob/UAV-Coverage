@@ -27,7 +27,7 @@ a = 20*pi/180;
 % Simulation duration in seconds
 Tfinal = 15;
 % Time step in seconds
-Tstep = 0.01;
+Tstep = 0.1;
 
 % Control law options
 % Planar control law gain
